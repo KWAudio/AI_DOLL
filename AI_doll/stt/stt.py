@@ -1,25 +1,32 @@
 import sys
 import speech_recognition as sr
 
-# Recognizer 객체 생성
 recognizer = sr.Recognizer()
 
 def process_audio():
     try:
-        # 표준 입력에서 오디오 데이터를 읽음 (Node.js에서 전달된 데이터)
-        audio_data = sys.stdin.buffer.read()
+        print("[INFO] STT 모듈 실행됨. 오디오 수신 대기 중...")
 
-        # AudioData 객체로 변환
+        audio_data = sys.stdin.buffer.read()
+        print(f"[INFO] 오디오 데이터 수신 완료. 크기: {len(audio_data)} bytes")
+
+        if len(audio_data) == 0:
+            print("[WARNING] 오디오가 비어 있음")
+            return
+
+        # 오디오 객체 생성 (channels=1, sample_width=2)
         audio = sr.AudioData(audio_data, 16000, 2)
 
-        # STT 변환 수행
+        print("[INFO] Google STT 요청 중...")
         text = recognizer.recognize_google(audio, language="ko-KR")
-        print(text)  # 변환된 텍스트를 stdout으로 출력 (Node.js가 읽음)
+        print("[RESULT]", text)
 
     except sr.UnknownValueError:
-        print("음성을 인식할 수 없습니다.")
+        print("[ERROR] 음성을 인식할 수 없습니다.")
     except sr.RequestError as e:
-        print(f"STT 오류: {e}")
+        print(f"[ERROR] Google STT 요청 실패: {e}")
+    except Exception as e:
+        print(f"[ERROR] 기타 예외 발생: {e}")
 
 if __name__ == "__main__":
     process_audio()
